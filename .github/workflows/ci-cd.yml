@@ -9,6 +9,8 @@ on:
 env:
   DOCKERHUB_USERNAME: loshithan
   IMAGE_NAME: itemui
+  APP_SERVICE_NAME: react-dotnet-app
+
 
 jobs:
   build-and-test-ui:
@@ -53,3 +55,18 @@ jobs:
       run: |
         docker build . -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
         docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy-to-app-service:
+    needs: docker-build-and-push-ui
+    runs-on: ubuntu-latest
+    steps:
+    # - name: Azure Login
+    #   uses: azure/login@v1
+    #   with:
+    #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy to Azure App Service
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.APP_SERVICE_NAME }}
+        images: ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
