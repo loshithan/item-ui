@@ -23,23 +23,17 @@ jobs:
       with:
         node-version: '20.x'
         cache: 'npm'
-        cache-dependency-path: './item-ui/package-lock.json'
+        cache-dependency-path: './package-lock.json'
 
     # Install, build and test UI
     - name: Install UI dependencies
-      run: |
-        cd item-ui
-        npm ci
+      run: npm ci
 
     - name: Build UI
-      run: |
-        cd item-ui
-        npm run build
+      run: npm run build
 
     - name: Test UI
-      run: |
-        cd item-ui
-        npm test
+      run: npm test
 
   docker-build-and-push-ui:
     needs: build-and-test-ui
@@ -57,5 +51,5 @@ jobs:
 
     - name: Build and push UI image
       run: |
-        docker build ./item-ui -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        docker build . -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
         docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
