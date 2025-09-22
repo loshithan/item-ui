@@ -7,10 +7,9 @@ on:
     branches: [ "main" ]
 
 env:
-  DOCKERHUB_USERNAME: loshithan
-  IMAGE_NAME: itemui
-  APP_SERVICE_NAME: react-dotnet-app
-
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+  APP_SERVICE_NAME: ${{ secrets.APP_SERVICE_NAME }}
 
 jobs:
   build-and-test-ui:
@@ -53,33 +52,18 @@ jobs:
 
     - name: Build and push UI image
       run: |
-        docker build . -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }}
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }}
 
   deploy-to-app-service:
     needs: docker-build-and-push-ui
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
     steps:
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
     - name: Deploy to Azure App Service
-      uses: azure/webapps-deploy@v2
+      uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ env.APP_SERVICE_NAME }}
-        images: ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-  # deploy-to-app-service:
-  #   needs: docker-build-and-push-ui
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v3
-
-  #   - name: Deploy to Azure App Service
-  #     uses: azure/webapps-deploy@v2
-  #     with:
-  #       app-name: ${{ env.APP_SERVICE_NAME }}
-  #       publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-  #       images: ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-  
+        app-name: ${{ secrets.APP_SERVICE_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }}
