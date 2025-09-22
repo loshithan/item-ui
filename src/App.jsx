@@ -36,7 +36,7 @@ function App() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Item List</h1>
+      <h1>Item List - for publish</h1>
       {apiUrl && <p style={{ color: 'gray', fontSize: '12px' }}>API: {apiUrl}</p>}
       <ul>
         {items.map((item, idx) => (
