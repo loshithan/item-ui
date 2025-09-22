@@ -18,7 +18,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    # Setup Node.js
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
@@ -26,15 +25,11 @@ jobs:
         cache: 'npm'
         cache-dependency-path: './package-lock.json'
 
-    # Install, build and test UI
     - name: Install UI dependencies
       run: npm ci
 
     - name: Build UI
       run: npm run build
-
-    # - name: Test UI
-    #   run: npm test
 
   docker-build-and-push-ui:
     needs: build-and-test-ui
@@ -44,15 +39,24 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Debug - Check secrets are set
+      run: |
+        echo "DockerHub Username length: ${#DOCKERHUB_USERNAME}"
+        echo "Image Name: $IMAGE_NAME"
+        # Don't echo tokens for security
+
     - name: Login to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push UI image
+    - name: Build Docker image
       run: |
         docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }}
+
+    - name: Push Docker image
+      run: |
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }}
 
   deploy-to-app-service:
