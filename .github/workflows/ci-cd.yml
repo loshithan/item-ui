@@ -60,10 +60,10 @@ jobs:
     needs: docker-build-and-push-ui
     runs-on: ubuntu-latest
     steps:
-    # - name: Azure Login
-    #   uses: azure/login@v1
-    #   with:
-    #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Deploy to Azure App Service
       uses: azure/webapps-deploy@v2
