@@ -7,9 +7,9 @@ on:
     branches: [ "main" ]
 
 env:
-  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-  IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
-  APP_SERVICE_NAME: ${{ secrets.APP_SERVICE_NAME }}
+  DOCKERHUB_USERNAME: "loshithan"  # Your actual Docker Hub username
+  IMAGE_NAME: "loshithan/itemui"             # Your image name
+  APP_SERVICE_NAME: "itemui-app-demo"  # Your Azure App Service name
 
 jobs:
   build-and-test-ui:
@@ -39,25 +39,25 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Debug - Check secrets are set
+    - name: Debug - Check env variables
       run: |
-        echo "DockerHub Username length: ${#DOCKERHUB_USERNAME}"
+        echo "DockerHub Username: $DOCKERHUB_USERNAME"
         echo "Image Name: $IMAGE_NAME"
-        # Don't echo tokens for security
+        echo "App Service Name: $APP_SERVICE_NAME"
 
     - name: Login to Docker Hub
       uses: docker/login-action@v2
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        username: ${{ env.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}  # Keep token as secret!
 
     - name: Build Docker image
       run: |
-        docker build . -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }}
+        docker build . -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
     - name: Push Docker image
       run: |
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }}
+        docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
   deploy-to-app-service:
     needs: docker-build-and-push-ui
@@ -68,6 +68,6 @@ jobs:
     - name: Deploy to Azure App Service
       uses: azure/webapps-deploy@v3
       with:
-        app-name: ${{ secrets.APP_SERVICE_NAME }}
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }}
+        app-name: ${{ env.APP_SERVICE_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  # Keep as secret!
+        images: ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
