@@ -1,0 +1,61 @@
+name: CI/CD Pipeline (Frontend Only)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  DOCKERHUB_USERNAME: loshithan
+  IMAGE_NAME: itemui
+
+jobs:
+  build-and-test-ui:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    # Setup Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: './item-ui/package-lock.json'
+
+    # Install, build and test UI
+    - name: Install UI dependencies
+      run: |
+        cd item-ui
+        npm ci
+
+    - name: Build UI
+      run: |
+        cd item-ui
+        npm run build
+
+    - name: Test UI
+      run: |
+        cd item-ui
+        npm test
+
+  docker-build-and-push-ui:
+    needs: build-and-test-ui
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push UI image
+      run: |
+        docker build ./item-ui -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
