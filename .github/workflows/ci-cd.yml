@@ -8,7 +8,7 @@ on:
 
 env:
   DOCKERHUB_USERNAME: "loshithan"  # Your actual Docker Hub username
-  IMAGE_NAME: "loshithan/itemui"             # Your image name
+  IMAGE_NAME: "itemui"             # Your image name
   APP_SERVICE_NAME: "itemui-app-demo"  # Your Azure App Service name
 
 jobs:
